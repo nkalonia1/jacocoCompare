@@ -1,5 +1,7 @@
 package data;
 
+import org.jacoco.core.data.ExecutionData;
+
 /**
  * An immutable wrapper class that stores the id, name, and probe count of an ExecutionData
  */
@@ -7,6 +9,10 @@ public class ExecutionInfo {
     private final long _id;
     private final String _name;
     private final int _probe_count;
+
+    public ExecutionInfo(ExecutionData data) {
+        this(data.getId(), data.getName(), data.getProbes().length);
+    }
 
     public ExecutionInfo(long id, String name, int probe_count) {
         _id = id;
@@ -24,6 +30,21 @@ public class ExecutionInfo {
 
     public int getProbeCount() {
         return _probe_count;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (! (o instanceof ExecutionInfo) ) return false;
+        ExecutionInfo i = (ExecutionInfo) o;
+        return _id == i._id && _name.equals(i._name) && _probe_count == i._probe_count;
+    }
+
+    @Override
+    public int hashCode() {
+        int id_1 = (int) _id;
+        int id_2 = (int) (_id >> 32);
+        int name = _name.hashCode();
+        return id_1 + id_2 + name + _probe_count;
     }
 
 }

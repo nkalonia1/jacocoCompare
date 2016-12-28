@@ -116,12 +116,40 @@ public class IntExecutionData {
         assertCompatability(other.getInfo());
     }
 
+    public void reset() {
+        for (int i = 0; i < _probes.length; i++) { _probes[i] = 0; }
+    }
+
     public ExecutionInfo getInfo() {
         return _exec_info;
     }
 
     public int[] getProbes() {
-        return _probes;
+        int[] out = new int[_probes.length];
+        System.arraycopy(_probes, 0, out, 0, _probes.length);
+        return out;
+    }
+
+    public ExecutionData toExecutionData() {
+        boolean[] probes = new boolean[_probes.length];
+        for (int i = 0; i < _probes.length; i++) {
+            probes[i] = _probes[i] > 0;
+        }
+        return new ExecutionData(_exec_info.getId(), _exec_info.getName(), probes);
+    }
+
+    /**
+     * Compares this class to another IntExecutionData. Returns a new IntExecutionData that represents the
+     * intersection of these two objects. This function will not modify either object.
+     * To be more specific the output contains the minumum value of any probe in the two IntExecutionData.
+     */
+    public IntExecutionData intersect(IntExecutionData other) throws IllegalStateException {
+        assertCompatability(other);
+        IntExecutionData out = new IntExecutionData(_exec_info);
+        for (int i = 0; i < _probes.length; i++) {
+            out._probes[i] = Math.min(_probes[i], other._probes[i]);
+        }
+        return out;
     }
 
 }

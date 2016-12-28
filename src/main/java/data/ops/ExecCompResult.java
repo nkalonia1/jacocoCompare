@@ -5,13 +5,14 @@ import data.ExecutionInfo;
 /**
  * An immutable container (except under package scope) that holds the results from some operations in IntExecOps
  */
-public class ExecOpResult {
-    static int _HIT = 0, _MISS = 1;
+public class ExecCompResult {
+    static final int _HIT = 0, _MISS = 1;
+    static final int _A = 0, _B = 1;
 
     private ExecutionInfo _info;
     int[][] _results;
 
-    ExecOpResult(ExecutionInfo info) {
+    ExecCompResult(ExecutionInfo info) {
         _info = info;
         _results = new int[2][info.getProbeCount()];
     }
@@ -26,5 +27,9 @@ public class ExecOpResult {
         int[] out = new int[_results[_MISS].length];
         System.arraycopy(_results[_MISS], 0, out, 0, _results[_MISS].length);
         return out;
+    }
+
+    public ExecutionInfo getInfo() {
+        return _info;
     }
 }
