@@ -3,15 +3,19 @@ package data;
 import org.jacoco.core.data.ExecutionData;
 
 /**
- * An immutable wrapper class that stores the id, name, and probe count of an ExecutionData
+ * An immutable wrapper class that stores the id, name, and probe count of a (R)ExecutionData
  */
 public class ExecutionInfo {
     private final long _id;
     private final String _name;
     private final int _probe_count;
 
-    public ExecutionInfo(ExecutionData data) {
-        this(data.getId(), data.getName(), data.getProbes().length);
+    public static ExecutionInfo getInfo(ExecutionData data) {
+        return new ExecutionInfo(data.getId(), data.getName(), data.getProbes().length);
+    }
+
+    public static ExecutionInfo getInfo(RExecutionData data) {
+        return new ExecutionInfo(data.getId(), data.getName(), data.getProbeCount());
     }
 
     public ExecutionInfo(long id, String name, int probe_count) {

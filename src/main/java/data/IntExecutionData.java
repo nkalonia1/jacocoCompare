@@ -7,7 +7,7 @@ import static java.lang.String.format;
 /**
  * An alternate version of ExecutionData where probes are stored as ints instead of booleans
  */
-public class IntExecutionData {
+public class IntExecutionData implements Cloneable {
     private ExecutionInfo _exec_info;
     private int[] _probes;
 
@@ -138,17 +138,47 @@ public class IntExecutionData {
         return new ExecutionData(_exec_info.getId(), _exec_info.getName(), probes);
     }
 
+
     /**
      * Compares this class to another IntExecutionData. Returns a new IntExecutionData that represents the
      * intersection of these two objects. This function will not modify either object.
      * To be more specific the output contains the minumum value of any probe in the two IntExecutionData.
      */
-    public IntExecutionData intersect(IntExecutionData other) throws IllegalStateException {
+    public void intersect(IntExecutionData other) throws IllegalStateException {
         assertCompatability(other);
-        IntExecutionData out = new IntExecutionData(_exec_info);
         for (int i = 0; i < _probes.length; i++) {
-            out._probes[i] = Math.min(_probes[i], other._probes[i]);
+            _probes[i] = Math.min(_probes[i], other._probes[i]);
         }
+    }
+
+    /**
+     * Filters this class with another IntExecutionData. Returns a new IntExecutionData that contains the same
+     * probe information as this object with the exception of any probes that were visited by the other
+     * IntExecutionData.
+     * This method differs from the subtract() methods by marking a probe as unvisited if the other IntExecutionData
+     * has a record of that probe being visited, regardless of how many times.
+     *
+     * As an example, if this object contained
+     * [3, 2 , 0, 1]
+     *
+     * And the other IntExecutionData contained
+     * [1, 0, 1, 3]
+     *
+     * Then this method will result in this object having the following probes:
+     * [0, 2, 0, 0]
+     */
+    public void filter(IntExecutionData other) throws IllegalStateException {
+        assertCompatability(other);
+        for (int i = 0; i < _probes.length; i++) {
+            if (other._probes[i] > 0) _probes[i] = 0;
+        }
+    }
+
+    @Override
+    public Object clone() throws CloneNotSupportedException {
+        super.clone();
+        IntExecutionData out = new IntExecutionData(_exec_info);
+        System.arraycopy(_probes, 0, out._probes, 0, _probes.length);
         return out;
     }
 

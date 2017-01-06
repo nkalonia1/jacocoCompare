@@ -4,18 +4,25 @@ import org.jacoco.core.data.ExecutionData;
 import org.jacoco.core.data.ExecutionDataStore;
 import org.jacoco.core.data.IExecutionDataVisitor;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 
 /**
  * A secondary version of ExecutionDataStore that keeps execution data as IntExecutionData.
  * This class must be converted from an existing ExecutionDataStore
  */
-public class IntExecutionDataStore implements IExecutionDataVisitor {
+public class IntExecutionDataStore implements IExecutionDataVisitor, Cloneable {
+    private Path _source;
     private Map<ExecutionInfo, IntExecutionData> _store;
     private Set<String> _names;
 
-
     public IntExecutionDataStore() {
+        this(Paths.get("."));
+    }
+
+    public IntExecutionDataStore(Path source) {
+        _source = source;
         _store = new HashMap<ExecutionInfo, IntExecutionData>();
         _names = new HashSet<String>();
     }
@@ -25,7 +32,8 @@ public class IntExecutionDataStore implements IExecutionDataVisitor {
     }
 
     public void put(ExecutionData data) {
-        get(new ExecutionInfo(data)).add(data);
+        IntExecutionData lol = get(new ExecutionInfo(data));
+        lol.add(data);
     }
 
     public void put(IntExecutionData data) {
@@ -49,7 +57,9 @@ public class IntExecutionDataStore implements IExecutionDataVisitor {
             return _store.get(id);
         } else {
             _names.add(id.getName());
-            return _store.put(id, new IntExecutionData(id));
+            IntExecutionData out  = new IntExecutionData(id);
+            _store.put(id, out);
+            return out;
         }
     }
 
@@ -67,24 +77,28 @@ public class IntExecutionDataStore implements IExecutionDataVisitor {
         }
     }
 
-    public void subtract(ExecutionData data) {
-        get(new ExecutionInfo(data)).subtract(data);
+    public boolean subtract(ExecutionData data) {
+        return get(new ExecutionInfo(data)).subtract(data);
     }
 
-    public void subtract(IntExecutionData data) {
-        get(data.getInfo()).subtract(data);
+    public boolean subtract(IntExecutionData data) {
+        return get(data.getInfo()).subtract(data);
     }
 
-    public void subtract(ExecutionDataStore store) {
+    public Collection<String> subtract(ExecutionDataStore store) {
+        Collection<String> out =  new HashSet<String>();
         for (ExecutionData data : store.getContents()) {
-            subtract(data);
+            if (subtract(data)) out.add(data.getName());
         }
+        return out;
     }
 
-    public void subtract(IntExecutionDataStore store) {
+    public Collection<String> subtract(IntExecutionDataStore store) {
+        Collection<String> out = new HashSet<String>();
         for (IntExecutionData data : store.getContents()) {
-            subtract(data);
+            if (subtract(data)) out.add(data.getInfo().getName());
         }
+        return out;
     }
 
     public void accept(IExecutionDataVisitor visitor) {
@@ -95,21 +109,49 @@ public class IntExecutionDataStore implements IExecutionDataVisitor {
 
     /**
      * Compares this class to another IntExecutionDataStore. Returns a new IntExecutionDataStore that represents the
-     * intersection of the IntExecutionData in these two objects. This function will not modify either object.
+     * intersection of the IntExecutionData in these two objects.
      * See the intersect() function in IntExecutionData for more details.
      */
-    public IntExecutionDataStore intersect(IntExecutionDataStore other) {
-        IntExecutionDataStore out = new IntExecutionDataStore();
+    public void intersect(IntExecutionDataStore other) {
         for (IntExecutionData data : _store.values()) {
             if (other.contains(data.getInfo())) {
-                out.put(data.intersect(other.get(data.getInfo())));
+                data.intersect(other.get(data.getInfo()));
             }
         }
-        return out;
+    }
+
+    /**
+     * Iterates through all of IntExecutionData in this object and executes their filter() methods, passing in the
+     * corresponding IntExecutionData found in the parameter.
+     * See the filter() method in IntExecutionData for more details.
+     */
+    public void filter(IntExecutionDataStore other) {
+        for ( IntExecutionData data : _store.values() ) {
+            if (other.contains(data.getInfo())) {
+                data.filter(other.get(data.getInfo()));
+            }
+        }
+    }
+
+    public Path getSource() {
+        return _source;
     }
 
     @Override
     public void visitClassExecution(ExecutionData data) {
         put(data);
+    }
+
+    @Override
+    public Object clone() throws CloneNotSupportedException {
+        super.clone();
+        IntExecutionDataStore out = new IntExecutionDataStore();
+        for (ExecutionInfo info : _store.keySet()) {
+            out._store.put(info, (IntExecutionData) _store.get(info).clone());
+        }
+        for (String name : _names) {
+            out._names.add(name);
+        }
+        return out;
     }
 }

@@ -40,10 +40,25 @@ public class IntExecOps {
         return out;
     }
 
-    /**
-     * Compares two IntExecutionData. Returns a new IntExecutionData that represents the intersection of the data
-     * from the two objects.
-     * To be more specific the output contains the minumum value of any probe in the two IntExecutionData.
-     */
-    //public static IntExecutionData compare()
+    public static IntExecutionDataStore intersect(IntExecutionDataStore a, IntExecutionDataStore b) {
+        IntExecutionDataStore out = null;
+        try {
+            out = (IntExecutionDataStore) a.clone();
+            out.intersect(b);
+        } catch (CloneNotSupportedException cnse) {
+            System.err.println(cnse);
+        }
+        return out;
+    }
+
+    public static IntExecutionDataStore filter(IntExecutionDataStore a, IntExecutionDataStore b) {
+        IntExecutionDataStore out = null;
+        try {
+            out = (IntExecutionDataStore) a.clone();
+            out.filter(b);
+        } catch (CloneNotSupportedException cnse) {
+            System.err.println(cnse);
+        }
+        return out;
+    }
 }
